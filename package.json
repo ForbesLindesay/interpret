@@ -1,0 +1,19 @@
+{
+  "name": "interpret",
+  "version": "0.0.0",
+  "description": "An interpreter for executing un-trusted Esprima Parse Trees with powerful extensibility to aid asynchronous programming",
+  "keywords": [],
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "*"
+  },
+  "scripts": {
+    "test": "mocha -R spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ForbesLindesay/interpret.git"
+  },
+  "author": "ForbesLindesay",
+  "license": "MIT"
+}
