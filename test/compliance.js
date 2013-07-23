@@ -23,8 +23,10 @@ function file(path, name) {
     try {
       evaluate.parse(source)
     } catch (ex) {
-      it.skip(name, function () {})
-      return
+      if (/^Expressions of type/.test(ex.message)) {
+        it.skip(name, function () {})
+        return
+      }
     }
   }
   if (/\$INCLUDE/.test(source.toString())) {

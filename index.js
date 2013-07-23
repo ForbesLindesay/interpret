@@ -8,7 +8,7 @@ var simplify = require('./lib/utils.js').simplify
 var serialEval = require('./lib/utils.js').serialEval
 var binaryOperation = require('./lib/binary-operation.js')
 
-var Result = require('./lib/tokens/result.js')
+var Result = require('./lib/token/result.js')
 
 
 exports = (module.exports = evaluate)
@@ -50,7 +50,7 @@ function parse(source, options) {
   }
   source = simplify(source)
   //console.log(require('util').inspect(source, false, 20, true))
-  function verify(source) {
+  ;(function verify(source) {
     if (typeof evaluators[source.type] != 'function') {
       throw new Error('Expressions of type `' + source.type + '` are not yet supported.')
     }
@@ -61,7 +61,7 @@ function parse(source, options) {
         verify(source[key])
       }
     }
-  }(source)
+  }(source))
   return source
 }
 
@@ -81,7 +81,6 @@ var evaluators = {
   'Identifier': identifier,
   'ArrayExpression': array,
   'ObjectExpression': object,
-  'UpdateExpression': compileTime,
   'EmptyStatement': empty,
   'ForStatement': require('./lib/evaluators/for.js'),
   'MemberExpression': require('./lib/evaluators/member.js'),
@@ -94,7 +93,14 @@ var evaluators = {
   'WhileStatement': require('./lib/evaluators/while.js'),
   'ThisExpression': thisExpression,
   'TryStatement': require('./lib/evaluators/try.js'),
-  'ThrowStatement': throwStatement
+  'ThrowStatement': throwStatement,
+  'LabeledStatement': require('./lib/evaluators/labeled.js'),
+  'BreakStatement': require('./lib/evaluators/break-continue.js'),
+  'ContinueStatement': require('./lib/evaluators/break-continue.js'),
+
+  'UpdateExpression': compileTime,
+  'Property': handledElsewhere,
+  'CatchClause': handledElsewhere
 }
 function empty() {}
 function expressionStatement(node, scope, evaluate, options) {
@@ -148,9 +154,6 @@ function object(node, scope, evaluate, options) {
   }
   return res
 }
-function compileTime(node) {
-  throw new Error(node.type + ' should be converted to `Cached` at compile time.')
-}
 function variableDeclarations(node, scope, evaluate, options) {
   return serialEval(node.declarations, scope, evaluate, options)
 }
@@ -162,6 +165,16 @@ function throwStatement(node, scope, evaluate, options) {
     throw res
   })
 }
+
+
+
+function compileTime(node) {
+  throw new Error(node.type + ' should be converted to `Cached` at compile time.')
+}
+function handledElsewhere(node) {
+  throw new Error(node.type + ' should be handled elsewhere.')
+}
+
 function evaluateNode(node, scope, options) {
   if (evaluators[node.type]) return evaluators[node.type](node, scope, evaluateNode, options)
   console.dir(node)
