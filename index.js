@@ -11,7 +11,7 @@ var binaryOperation = require('./lib/binary-operation.js')
 var Result = require('./lib/tokens/result.js')
 
 
-module.exports = evaluate
+exports = (module.exports = evaluate)
 function evaluate(source, options) {
   options = options || {}
   var scope = options.scope || new Scope(false, undefined, undefined)
@@ -21,7 +21,21 @@ function evaluate(source, options) {
       scope.declare(key, 'const', options.scope[key])
     })
   }
-  options.go = options.go || function (val, fn) { return fn(val) }
+  options.go = options.go || function (val, cb, eb) { return cb(val) }
+  options.attempt = options.attempt || function (fn, cb, eb) {
+    try {
+      var res = fn()
+    } catch (ex) {
+      return options.go(ex, eb)
+    }
+    return options.go(res, cb, eb)
+  }
+  source = parse(source, options)
+  return evaluateNode(source, scope, options)
+}
+exports.parse = parse
+function parse(source, options) {
+  options = options || {}
   try {
     if (typeof source === 'function') source = '(' + source.toString() + '())'
     if (typeof source === 'string') source = esprima.parse('"use strict";' + source)
@@ -48,7 +62,7 @@ function evaluate(source, options) {
       }
     }
   }(source)
-  return evaluateNode(source, scope, options)
+  return source
 }
 
 var evaluators = {
@@ -56,6 +70,7 @@ var evaluators = {
   'Program': require('./lib/evaluators/blocks.js'),
   'ExpressionStatement': expressionStatement,
   'CallExpression': require('./lib/evaluators/calls.js'),
+  'NewExpression': require('./lib/evaluators/new.js'),
   'FunctionDeclaration': require('./lib/evaluators/functions.js'),
   'FunctionExpression': require('./lib/evaluators/functions.js'),
   'ReturnStatement': returnStatement,
@@ -77,7 +92,9 @@ var evaluators = {
   'AssignmentExpression': require('./lib/evaluators/assignment.js'),
   'UnaryExpression': require('./lib/evaluators/unary.js'),
   'WhileStatement': require('./lib/evaluators/while.js'),
-  'ThisExpression': thisExpression
+  'ThisExpression': thisExpression,
+  'TryStatement': require('./lib/evaluators/try.js'),
+  'ThrowStatement': throwStatement
 }
 function empty() {}
 function expressionStatement(node, scope, evaluate, options) {
@@ -102,17 +119,32 @@ function array(node, scope, evaluate, options) {
 function object(node, scope, evaluate, options) {
   var res = {}
   var ready = null
+  var properties = []
+  var props = {}
   for (var i = 0; i < node.properties.length; i++) {
     (function (i) {
       ready = options.go(ready, function () {
         var key = node.properties[i].key.type === 'Identifier' ? node.properties[i].key.name : evaluate(node.properties[i].key, scope, options)
         return options.go(key, function (key) {
           return options.go(evaluate(node.properties[i].value, scope, options), function (val) {
-            res[key] = val
+            if (node.properties[i].kind === 'set' || node.properties[i].kind === 'get') {
+              if (!props['key:' + key]) {
+                properties.push(props['key:' + key] = {name: key})
+              }
+              props['key:' + key][node.properties[i].kind] = val
+            } else {
+              res[key] = val
+            }
           })
         })
       })
     }(i))
+  }
+  for (var i = 0; i < properties.length; i++) {
+    Object.defineProperty(res, properties[i].name, {
+      get: properties[i].get,
+      set: properties[i].set
+    })
   }
   return res
 }
@@ -124,6 +156,11 @@ function variableDeclarations(node, scope, evaluate, options) {
 }
 function thisExpression(node, scope, evaluate, options) {
   return scope.self()
+}
+function throwStatement(node, scope, evaluate, options) {
+  options.go(evaluate(node.argument, scope, options), function (res) {
+    throw res
+  })
 }
 function evaluateNode(node, scope, options) {
   if (evaluators[node.type]) return evaluators[node.type](node, scope, evaluateNode, options)

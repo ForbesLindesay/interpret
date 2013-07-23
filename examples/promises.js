@@ -19,8 +19,8 @@ var end = evaluate(log, {
       })
     }
   },
-  go: function (val, fn) {
-    return Promise.from(val).then(fn)
+  go: function (val, cb, eb) {
+    return Promise.from(val).then(cb, eb)
   }
 })
 //The result is a promise now because of `go`

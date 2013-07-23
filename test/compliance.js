@@ -1,4 +1,5 @@
 var fs = require('fs')
+var assert = require('assert')
 var evaluate = require('../')
 
 //download tests from http://hg.ecmascript.org/tests/test262/
@@ -17,11 +18,49 @@ function directory(path, name) {
   })
 }
 function file(path, name) {
+  var source = require('fs').readFileSync(path, 'utf8')
+  if (!/@negative/.test(source)) {
+    try {
+      evaluate.parse(source)
+    } catch (ex) {
+      it.skip(name, function () {})
+      return
+    }
+  }
+  if (/\$INCLUDE/.test(source.toString())) {
+    it.skip(name, function () {})
+    return
+  }
   it(name, function () {
-    evaluate(require('fs').readFileSync(path, 'utf8'), {
-      '$ERROR': function (msg) {
-        throw msg
+    if (/@negative/.test(source)) {
+      try {
+        evaluate(source, {
+          scope: {
+            'console': console,
+            '$ERROR': function (msg) {
+              throw msg
+            },
+            runTestCase: function (fn) {
+              assert(fn())
+            }
+          }
+        })
+      } catch (ex) {
+        return
       }
-    })
+      assert(false, 'test was meant to fail')
+    } else {
+      evaluate(source, {
+        scope: {
+          'console': console,
+          '$ERROR': function (msg) {
+            throw msg
+          },
+          runTestCase: function (fn) {
+            assert(fn(), 'runTestCase should be given a function which returns true')
+          }
+        }
+      })
+    }
   })
 }

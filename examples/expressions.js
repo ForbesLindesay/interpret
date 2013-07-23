@@ -10,6 +10,13 @@ evaluate(function () {
     console.dir(x++)
   }
   console.dir(function () { return this }.call({hello:'world'}))
+
+
+  try {
+    throw 'my error'
+  } catch (ex) {
+    console.log(ex.stack || ex)
+  }
 }, {
   scope: { console: console }
 })
