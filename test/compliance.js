@@ -6,7 +6,7 @@ var evaluate = require('../')
 directory(__dirname + '/compliance', 'test it supports all JavaScript features')
 function directory(path, name) {
   describe(name, function () {
-    fs.readdirSync(path)
+    fs.readdirSync(path).sort()
       .forEach(function (name) {
         if (fs.statSync(path + '/' + name).isDirectory()) {
           if (/ignore/.test(name)) return
@@ -19,7 +19,7 @@ function directory(path, name) {
 }
 function file(path, name) {
   var source = require('fs').readFileSync(path, 'utf8')
-  if (!/@negative/.test(source)) {
+  /*if (!/@negative/.test(source)) {
     try {
       evaluate.parse(source)
     } catch (ex) {
@@ -28,7 +28,7 @@ function file(path, name) {
         return
       }
     }
-  }
+  }*/
   if (/\$INCLUDE/.test(source.toString())) {
     it.skip(name, function () {})
     return
