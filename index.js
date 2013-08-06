@@ -177,10 +177,10 @@ function handledElsewhere(node) {
 
 function evaluateNode(node, scope, options) {
   if (evaluators[node.type]) return evaluators[node.type](node, scope, evaluateNode, options)
-  console.dir(node)
+  //console.dir(node)
   var ex = new Error('Unrecognized node type "' + node.type + '"')
   throw ex
 }
 
 var remaining = Object.keys(esprima.Syntax).filter(function (t) { return !(t in evaluators)})
-console.dir(remaining)
+//console.dir(remaining)
