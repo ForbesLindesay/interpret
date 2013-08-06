@@ -30,8 +30,15 @@ function execute() {
   var oldFailures = fs.readFileSync(__dirname + '/failures.txt', 'utf8').split('\n')
   var failures = []
 
+
+  var special = [
+    'S15.1.2.2_A5.1_T1.js', //node.js used to have a slightly broken parseInt
+    '15.2.3.6-4-410.js' //node.js used to not do Object.defineProperty quite right
+  ]
+
   readdir(__dirname + '/test262/test/suite', {filter: function (s) { return s.name != 'ignore' }})
     .filter(function (s) { return s.isFile() && /\.js$/.test(s.name) })
+    .filter(function (s) { return special.indexOf(s.name) === -1})
     .forEach(function (file) {
       var source = require('fs').readFileSync(file.fullPath, 'utf8')
 
