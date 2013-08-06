@@ -3,7 +3,10 @@
   "version": "0.0.0",
   "description": "An interpreter for executing un-trusted Esprima Parse Trees with powerful extensibility to aid asynchronous programming",
   "keywords": [],
-  "dependencies": {},
+  "dependencies": {
+    "esprima": "~1.0.3",
+    "syntax-error": "0.0.1"
+  },
   "devDependencies": {
     "lsr": "~1.0.0",
     "bash-color": "0.0.3",
