@@ -83,6 +83,7 @@ var evaluators = {
   'ObjectExpression': object,
   'EmptyStatement': empty,
   'ForStatement': require('./lib/evaluators/for.js'),
+  'ForInStatement': require('./lib/evaluators/for-in.js'),
   'MemberExpression': require('./lib/evaluators/member.js'),
   'IfStatement': require('./lib/evaluators/if.js'),
   'ConditionalExpression': require('./lib/evaluators/if.js'),

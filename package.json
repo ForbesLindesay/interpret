@@ -5,12 +5,13 @@
   "keywords": [],
   "dependencies": {},
   "devDependencies": {
-    "mocha": "*",
     "lsr": "~1.0.0",
-    "bash-color": "0.0.3"
+    "bash-color": "0.0.3",
+    "request": "~2.25.0",
+    "tar": "~0.1.18"
   },
   "scripts": {
-    "test": "mocha -R spec"
+    "test": "node test/compliance quiet"
   },
   "repository": {
     "type": "git",
