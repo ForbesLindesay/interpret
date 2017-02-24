@@ -1,5 +1,7 @@
 # interpret
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/ForbesLindesay/interpret.svg)](https://greenkeeper.io/)
+
 An interpreter for executing un-trusted Esprima Parse Trees with powerful extensibility to aid asynchronous programming
 
 [![Build Status](https://img.shields.io/travis/ForbesLindesay/interpret/master.svg)](https://travis-ci.org/ForbesLindesay/interpret)
